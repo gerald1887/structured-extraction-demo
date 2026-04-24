@@ -16,3 +16,5 @@ tmp/
 # Editor
 .vscode/
 .idea/
+claude_*.md
+slice*_claude_review*
