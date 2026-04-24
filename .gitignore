@@ -18,3 +18,4 @@ tmp/
 .idea/
 claude_*.md
 slice*_claude_review*
+*.egg-info/
