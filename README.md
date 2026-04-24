@@ -13,13 +13,17 @@ Deterministic CLI-based LLM extraction system that converts text → strict JSON
 
 ## Setup
 
+```
 pip install -e .
+```
 
 ---
 
 ## Configure API Key
 
+```
 export OPENAI_API_KEY="your_api_key_here"
+```
 
 ---
 
