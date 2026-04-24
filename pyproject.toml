@@ -15,6 +15,13 @@ dependencies = [
 [project.scripts]
 extract = "extractor.cli:main"
 
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["extractor*"]
+exclude = ["inputs*", "outputs*", "prompts*", "schemas*", "redaction*", "tests*"]
+
 [tool.setuptools.package-data]
 extractor = ["prompts/*.txt"]
 
