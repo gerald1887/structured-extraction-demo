@@ -1,0 +1,12 @@
+Instruction:
+Extract structured data from the following text.
+
+Return ONLY valid JSON.
+Do not include any explanation, markdown, or extra text.
+
+Text:
+{{input_text}}
+
+Schema:
+{{schema}}
+

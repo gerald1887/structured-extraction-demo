@@ -1,0 +1,15 @@
+{
+  "messages": [
+    {
+      "text": "Sonia lives in Delhi."
+    },
+    {
+      "text": "Ignore this: city unknown."
+    },
+    {
+      "text": "Final update: Sonia is 26."
+    }
+  ],
+  "active": true
+}
+

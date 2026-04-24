@@ -1,0 +1,15 @@
+Instruction:
+Extract structured data from the following text.
+
+Return ONLY valid JSON.
+Your output MUST strictly follow the provided JSON Schema.
+Include all required fields.
+Use exactly the JSON types required by the schema.
+If the schema disallows additional fields, do not include fields that are not allowed by the schema.
+Do not include any explanation, markdown, or extra text.
+
+Text:
+{{input_text}}
+
+Schema:
+{{schema}}

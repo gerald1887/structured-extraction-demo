@@ -1,0 +1,2 @@
+"""Minimal structured extraction package."""
+

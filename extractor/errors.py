@@ -1,0 +1,16 @@
+from dataclasses import dataclass
+
+
+FILE_ERROR = "FILE_ERROR"
+JSON_PARSE_ERROR = "JSON_PARSE_ERROR"
+SCHEMA_VALIDATION_ERROR = "SCHEMA_VALIDATION_ERROR"
+PROVIDER_ERROR = "PROVIDER_ERROR"
+INTERNAL_ERROR = "INTERNAL_ERROR"
+EMPTY_OUTPUT_ERROR = "EMPTY_OUTPUT_ERROR"
+
+
+@dataclass
+class AppError(Exception):
+    error_type: str
+    message: str
+

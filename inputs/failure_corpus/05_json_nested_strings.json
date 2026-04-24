@@ -1,0 +1,13 @@
+{
+  "record": {
+    "headline": "Case note",
+    "details": [
+      "Mira Shah moved to Pune.",
+      {
+        "note": "Age listed as 35"
+      }
+    ]
+  },
+  "count": 2
+}
+
