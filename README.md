@@ -109,6 +109,15 @@ python3 -m extractor.cli validate \
   --failure-output outputs/validation_failure.json
 ```
 
+Optional success capture (written only when validation succeeds):
+
+```
+python3 -m extractor.cli validate \
+  --input outputs/result.json \
+  --schema schemas/extraction_schema.json \
+  --success-output outputs/validation_success.json
+```
+
 ---
 ## Output Artifacts
 

@@ -45,6 +45,11 @@ def main(argv: list[str] | None = None) -> int:
         metavar="PATH",
         help="Optional file path to capture Sentinel stdout/stderr on validation failure.",
     )
+    parser.add_argument(
+        "--success-output",
+        metavar="PATH",
+        help="Optional file path to capture Sentinel stdout/stderr on validation success.",
+    )
     args = parser.parse_args(argv)
 
     return validate_artifact_with_sentinel(
@@ -52,6 +57,7 @@ def main(argv: list[str] | None = None) -> int:
         schema_path=args.schema,
         sentinel_bin=args.sentinel_bin,
         failure_output_path=args.failure_output,
+        success_output_path=args.success_output,
     )
 
 

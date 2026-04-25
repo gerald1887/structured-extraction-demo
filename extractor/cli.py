@@ -87,6 +87,7 @@ def build_parser() -> argparse.ArgumentParser:
     validate_parser.add_argument("--schema", required=True)
     validate_parser.add_argument("--sentinel-bin", default=os.environ.get("SENTINEL_BIN", "sentinel"))
     validate_parser.add_argument("--failure-output")
+    validate_parser.add_argument("--success-output")
 
     return parser
 
@@ -328,6 +329,7 @@ def main() -> int:
             schema_path=args.schema,
             sentinel_bin=args.sentinel_bin,
             failure_output_path=args.failure_output,
+            success_output_path=args.success_output,
         )
 
     if args.command != "run":

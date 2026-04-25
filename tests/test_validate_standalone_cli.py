@@ -152,6 +152,87 @@ class TestValidateStandaloneCli(unittest.TestCase):
             self.assertEqual(code, 0)
             self.assertFalse(failure_output.exists())
 
+    def test_validate_success_output_written_on_success(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            fake = self._fake_sentinel_path(root)
+            schema = root / "schema.json"
+            artifact = root / "artifact.json"
+            success_output = root / "success.json"
+            schema.write_text(self._schema_text(), encoding="utf-8")
+            artifact.write_text(json.dumps({"name": "A", "age": 1, "city": "B"}), encoding="utf-8")
+            code, _ = self._run_cli(
+                [
+                    "extract",
+                    "validate",
+                    "--input",
+                    str(artifact),
+                    "--schema",
+                    str(schema),
+                    "--success-output",
+                    str(success_output),
+                ],
+                env={"SENTINEL_BIN": str(fake), "FAKE_SENTINEL_RC": "0"},
+            )
+            self.assertEqual(code, 0)
+            self.assertTrue(success_output.exists())
+            payload = json.loads(success_output.read_text(encoding="utf-8"))
+            self.assertEqual(payload["exit_code"], 0)
+            self.assertIn("fake sentinel rc=0", payload["stdout"])
+            self.assertEqual(payload["stderr"], "")
+
+    def test_validate_success_output_omitted_by_default(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            fake = self._fake_sentinel_path(root)
+            schema = root / "schema.json"
+            artifact = root / "artifact.json"
+            success_output = root / "success.json"
+            schema.write_text(self._schema_text(), encoding="utf-8")
+            artifact.write_text(json.dumps({"name": "A", "age": 1, "city": "B"}), encoding="utf-8")
+            code, _ = self._run_cli(
+                [
+                    "extract",
+                    "validate",
+                    "--input",
+                    str(artifact),
+                    "--schema",
+                    str(schema),
+                ],
+                env={"SENTINEL_BIN": str(fake), "FAKE_SENTINEL_RC": "0"},
+            )
+            self.assertEqual(code, 0)
+            self.assertFalse(success_output.exists())
+
+    def test_validate_success_output_not_written_on_failure(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            fake = self._fake_sentinel_path(root)
+            schema = root / "schema.json"
+            artifact = root / "artifact.json"
+            success_output = root / "success.json"
+            failure_output = root / "failure.json"
+            schema.write_text(self._schema_text(), encoding="utf-8")
+            artifact.write_text(json.dumps({"name": "A"}), encoding="utf-8")
+            code, _ = self._run_cli(
+                [
+                    "extract",
+                    "validate",
+                    "--input",
+                    str(artifact),
+                    "--schema",
+                    str(schema),
+                    "--success-output",
+                    str(success_output),
+                    "--failure-output",
+                    str(failure_output),
+                ],
+                env={"SENTINEL_BIN": str(fake), "FAKE_SENTINEL_RC": "1"},
+            )
+            self.assertEqual(code, 1)
+            self.assertFalse(success_output.exists())
+            self.assertTrue(failure_output.exists())
+
     def test_validate_without_failure_output_remains_optional(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
