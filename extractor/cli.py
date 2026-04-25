@@ -89,6 +89,9 @@ def build_parser() -> argparse.ArgumentParser:
     validate_parser.add_argument("--failure-output")
     validate_parser.add_argument("--success-output")
 
+    replay_parser = subparsers.add_parser("replay")
+    replay_parser.add_argument("--input", required=True)
+
     return parser
 
 
@@ -117,6 +120,34 @@ def _load_json_file_for_diff(path: str) -> object:
         return json.loads(raw)
     except Exception as exc:
         raise AppError(JSON_PARSE_ERROR, f"Invalid JSON file: {path}") from exc
+
+
+def _load_replay_artifact(path: str) -> dict:
+    try:
+        raw = Path(path).read_text(encoding="utf-8")
+    except Exception as exc:
+        raise AppError(FILE_ERROR, f"Failed to read file: {path}") from exc
+    try:
+        data = json.loads(raw)
+    except Exception as exc:
+        raise AppError(JSON_PARSE_ERROR, f"Invalid JSON file: {path}") from exc
+    if not isinstance(data, dict):
+        raise AppError(SCHEMA_VALIDATION_ERROR, "Replay artifact must be a JSON object")
+    required = {"status", "exit_code", "stdout", "stderr"}
+    if set(data.keys()) != required:
+        raise AppError(SCHEMA_VALIDATION_ERROR, "Replay artifact has invalid fields")
+    if data.get("status") not in {"PASS", "FAIL", "ERROR"}:
+        raise AppError(SCHEMA_VALIDATION_ERROR, "Replay artifact has invalid status")
+    exit_code = data.get("exit_code")
+    if isinstance(exit_code, bool) or not isinstance(exit_code, int):
+        raise AppError(SCHEMA_VALIDATION_ERROR, "Replay artifact exit_code must be int")
+    if exit_code < 0 or exit_code > 255:
+        raise AppError(SCHEMA_VALIDATION_ERROR, "Replay artifact exit_code must be in range 0-255")
+    if not isinstance(data.get("stdout"), str):
+        raise AppError(SCHEMA_VALIDATION_ERROR, "Replay artifact stdout must be string")
+    if not isinstance(data.get("stderr"), str):
+        raise AppError(SCHEMA_VALIDATION_ERROR, "Replay artifact stderr must be string")
+    return data
 
 
 def _print_json_output(payload: dict) -> None:
@@ -331,6 +362,18 @@ def main() -> int:
             failure_output_path=args.failure_output,
             success_output_path=args.success_output,
         )
+
+    if args.command == "replay":
+        try:
+            artifact = _load_replay_artifact(args.input)
+        except AppError as err:
+            print(f"ERROR {err.error_type} {err.message}")
+            return 2
+        sys.stdout.write(artifact["stdout"])
+        sys.stdout.flush()
+        sys.stderr.write(artifact["stderr"])
+        sys.stderr.flush()
+        return artifact["exit_code"]
 
     if args.command != "run":
         print("ERROR INTERNAL_ERROR Invalid command")

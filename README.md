@@ -129,6 +129,12 @@ Validation capture artifact schema (`--success-output` and `--failure-output`):
 }
 ```
 
+Replay a saved validation artifact (no provider/Sentinel call):
+
+```
+extract replay --input outputs/validation_success.json
+```
+
 ---
 ## Output Artifacts
 
