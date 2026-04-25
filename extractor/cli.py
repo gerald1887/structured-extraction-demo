@@ -82,6 +82,10 @@ def build_parser() -> argparse.ArgumentParser:
     diff_parser.add_argument("--actual", required=True)
     diff_parser.add_argument("--report")
 
+    diff_artifacts_parser = subparsers.add_parser("diff-artifacts")
+    diff_artifacts_parser.add_argument("--expected", required=True)
+    diff_artifacts_parser.add_argument("--actual", required=True)
+
     validate_parser = subparsers.add_parser("validate")
     validate_parser.add_argument("--input", required=True)
     validate_parser.add_argument("--schema", required=True)
@@ -148,6 +152,20 @@ def _load_replay_artifact(path: str) -> dict:
     if not isinstance(data.get("stderr"), str):
         raise AppError(SCHEMA_VALIDATION_ERROR, "Replay artifact stderr must be string")
     return data
+
+
+def _json_equal(a: object, b: object) -> bool:
+    if type(a) is not type(b):
+        return False
+    if isinstance(a, dict):
+        if a.keys() != b.keys():
+            return False
+        return all(_json_equal(a[k], b[k]) for k in a)
+    if isinstance(a, list):
+        if len(a) != len(b):
+            return False
+        return all(_json_equal(x, y) for x, y in zip(a, b))
+    return a == b
 
 
 def _print_json_output(payload: dict) -> None:
@@ -259,6 +277,22 @@ def main() -> int:
                         {"status": "ERROR", "error_type": report_err.error_type, "message": report_err.message}
                     )
                     return 2
+            _print_json_output({"status": "ERROR", "error_type": err.error_type, "message": err.message})
+            return 2
+        except Exception:
+            _print_json_output({"status": "ERROR", "error_type": INTERNAL_ERROR, "message": "Internal error"})
+            return 2
+
+    if args.command == "diff-artifacts":
+        try:
+            expected_data = _load_json_file_for_diff(args.expected)
+            actual_data = _load_json_file_for_diff(args.actual)
+            if _json_equal(actual_data, expected_data):
+                print("MATCH")
+                return 0
+            print("DIFF")
+            return 1
+        except AppError as err:
             _print_json_output({"status": "ERROR", "error_type": err.error_type, "message": err.message})
             return 2
         except Exception:

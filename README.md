@@ -231,6 +231,14 @@ Exit codes:
 - 0 → PASS  
 - 1 → DIFF  
 - 2 → ERROR  
+
+Artifact equality diff:
+
+```
+extract diff-artifacts \
+  --expected outputs/validation_success.json \
+  --actual outputs/validation_failure.json
+```
 ---
 ## Schema Compatibility Check
 
