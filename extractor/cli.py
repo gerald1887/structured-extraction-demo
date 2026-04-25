@@ -1,5 +1,6 @@
 import argparse
 import json
+import os
 from pathlib import Path
 import sys
 
@@ -19,6 +20,7 @@ from extractor.runner import _compute_file_sha256, run_batch_extraction, run_ext
 from extractor.schema_check import run_schema_check, write_schema_check_report
 from extractor.snapshot import load_snapshot, write_snapshot
 from extractor.json_diff import compare_json
+from extractor.artifact_validate import validate_artifact_with_sentinel
 
 
 class StrictArgumentParser(argparse.ArgumentParser):
@@ -79,6 +81,11 @@ def build_parser() -> argparse.ArgumentParser:
     diff_parser.add_argument("--expected", required=True)
     diff_parser.add_argument("--actual", required=True)
     diff_parser.add_argument("--report")
+
+    validate_parser = subparsers.add_parser("validate")
+    validate_parser.add_argument("--input", required=True)
+    validate_parser.add_argument("--schema", required=True)
+    validate_parser.add_argument("--sentinel-bin", default=os.environ.get("SENTINEL_BIN", "sentinel"))
 
     return parser
 
@@ -313,6 +320,13 @@ def main() -> int:
             if err.error_type == JSON_PARSE_ERROR:
                 return 2
             return _map_exit_code(err.error_type)
+
+    if args.command == "validate":
+        return validate_artifact_with_sentinel(
+            input_path=args.input,
+            schema_path=args.schema,
+            sentinel_bin=args.sentinel_bin,
+        )
 
     if args.command != "run":
         print("ERROR INTERNAL_ERROR Invalid command")

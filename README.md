@@ -92,6 +92,14 @@ python3 scripts/validate_artifact_sentinel.py \
 
 The wrapper returns `extract`’s exit code on extraction failure, otherwise the validator’s exit code.
 
+Standalone artifact validation command (no extraction/provider call):
+
+```
+python3 -m extractor.cli validate \
+  --input outputs/result.json \
+  --schema schemas/extraction_schema.json
+```
+
 ---
 ## Output Artifacts
 

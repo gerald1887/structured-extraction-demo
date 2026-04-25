@@ -86,15 +86,21 @@ class TestValidateArtifactSentinel(unittest.TestCase):
             self.assertIn("FAIL: Contract violated", out)
             self.assertIn("fake sentinel rc=1", out)
 
-    def test_error_missing_artifact_file(self) -> None:
+    def test_execution_failure_maps_to_exit_two(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
+            fake = self._fake_sentinel_path(root)
+            env = dict(os.environ)
+            env["SENTINEL_BIN"] = str(fake)
+            env["FAKE_SENTINEL_RC"] = "2"
             sp = root / "schema.json"
             sp.write_text(SCHEMA_TEXT, encoding="utf-8")
-            code, out = self._run(str(root / "missing.json"), str(sp))
+            op = root / "out.json"
+            op.write_text(json.dumps({"name": "A", "age": 1, "city": "B"}), encoding="utf-8")
+            code, out = self._run(str(op), str(sp), env=env)
             self.assertEqual(code, 2, out)
             self.assertIn("ERROR: Execution failed", out)
-            self.assertIn("FILE_NOT_FOUND", out)
+            self.assertIn("fake sentinel rc=2", out)
 
     def test_error_missing_sentinel_cli(self) -> None:
         with tempfile.TemporaryDirectory() as td:
