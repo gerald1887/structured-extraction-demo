@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Run `extract run` with the same arguments, then validate the output JSON with
-# scripts/validate_artifact_sentinel.py (no second provider call).
+# scripts/validate_artifact_sentinel.py which invokes Sentinel CLI (no second provider call).
 # Requires --output and --schema in the argument list (single run mode).
 
 set -euo pipefail

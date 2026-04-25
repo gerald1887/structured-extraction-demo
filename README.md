@@ -39,7 +39,7 @@ extract run \
 ---
 ## Sentinel artifact validation (optional)
 
-Install the `sentinel` **package** (Sentinel CLI) in the same virtualenv to validate `outputs/result.json` with Sentinel’s JSON Schema stack (`load_schema`, `validate_schema_structure`, `validate_instance`). This does **not** run `sentinel run` and does **not** make a second LLM call.
+Install Sentinel CLI in the same virtualenv. Validation in this repo is true black-box CLI invocation via subprocess (no `sentinel.*` Python imports). This does **not** run `sentinel run` and does **not** make a second LLM call.
 
 Install (from a local clone of the Sentinel CLI repo, path may vary):
 
@@ -60,7 +60,7 @@ python3 scripts/validate_artifact_sentinel.py \
   --schema schemas/extraction_schema.json
 ```
 
-Optional one-shot wrapper (single provider call; validation is local Python only):
+Optional one-shot wrapper (single provider call; validation delegates to Sentinel CLI):
 
 ```
 ./scripts/extract_then_validate.sh run \
@@ -69,7 +69,28 @@ Optional one-shot wrapper (single provider call; validation is local Python only
   --output outputs/result.json
 ```
 
-`validate_artifact_sentinel.py` exit codes: `0` = PASS, `1` = schema validation failure, `2` = error (I/O, invalid JSON, bad schema). The wrapper returns `extract`’s exit code on extraction failure, otherwise the validator’s exit code.
+`validate_artifact_sentinel.py` exit codes:
+- `0` = success (`sentinel` exits `0`)
+- `1` = contract failure (`sentinel` exits `1`)
+- `2` = execution/setup/internal failure (missing files, invalid JSON artifact, missing/broken Sentinel CLI, or non-standard Sentinel exit code)
+
+By default the validator calls:
+
+```
+sentinel validate --input <artifact> --schema <schema>
+```
+
+If your Sentinel CLI uses a different invocation shape, override it:
+
+```
+SENTINEL_BIN=/path/to/sentinel \
+SENTINEL_VALIDATE_ARGS='validate --input {input} --schema {schema}' \
+python3 scripts/validate_artifact_sentinel.py \
+  --input outputs/result.json \
+  --schema schemas/extraction_schema.json
+```
+
+The wrapper returns `extract`’s exit code on extraction failure, otherwise the validator’s exit code.
 
 ---
 ## Output Artifacts
