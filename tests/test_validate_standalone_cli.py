@@ -123,7 +123,7 @@ class TestValidateStandaloneCli(unittest.TestCase):
             self.assertTrue(failure_output.exists())
             payload = json.loads(failure_output.read_text(encoding="utf-8"))
             self.assertEqual(payload["status"], "FAIL")
-            self.assertEqual(payload["sentinel_exit_code"], 1)
+            self.assertEqual(payload["exit_code"], 1)
             self.assertIn("fake sentinel rc=1", payload["stdout"])
             self.assertEqual(payload["stderr"], "")
 
@@ -177,6 +177,7 @@ class TestValidateStandaloneCli(unittest.TestCase):
             self.assertEqual(code, 0)
             self.assertTrue(success_output.exists())
             payload = json.loads(success_output.read_text(encoding="utf-8"))
+            self.assertEqual(payload["status"], "PASS")
             self.assertEqual(payload["exit_code"], 0)
             self.assertIn("fake sentinel rc=0", payload["stdout"])
             self.assertEqual(payload["stderr"], "")
@@ -232,6 +233,35 @@ class TestValidateStandaloneCli(unittest.TestCase):
             self.assertEqual(code, 1)
             self.assertFalse(success_output.exists())
             self.assertTrue(failure_output.exists())
+
+    def test_validate_failure_output_execution_error_uses_error_status(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            schema = root / "schema.json"
+            artifact = root / "artifact.json"
+            failure_output = root / "failure.json"
+            schema.write_text(self._schema_text(), encoding="utf-8")
+            artifact.write_text(json.dumps({"name": "A"}), encoding="utf-8")
+            code, _ = self._run_cli(
+                [
+                    "extract",
+                    "validate",
+                    "--input",
+                    str(artifact),
+                    "--schema",
+                    str(schema),
+                    "--failure-output",
+                    str(failure_output),
+                    "--sentinel-bin",
+                    str(root / "missing-sentinel"),
+                ]
+            )
+            self.assertEqual(code, 2)
+            payload = json.loads(failure_output.read_text(encoding="utf-8"))
+            self.assertEqual(payload["status"], "ERROR")
+            self.assertEqual(payload["exit_code"], 2)
+            self.assertEqual(payload["stdout"], "")
+            self.assertEqual(payload["stderr"], "")
 
     def test_validate_without_failure_output_remains_optional(self) -> None:
         with tempfile.TemporaryDirectory() as td:

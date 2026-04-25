@@ -118,6 +118,17 @@ python3 -m extractor.cli validate \
   --success-output outputs/validation_success.json
 ```
 
+Validation capture artifact schema (`--success-output` and `--failure-output`):
+
+```
+{
+  "status": "PASS" | "FAIL" | "ERROR",
+  "exit_code": <integer>,
+  "stdout": "<captured stdout>",
+  "stderr": "<captured stderr>"
+}
+```
+
 ---
 ## Output Artifacts
 
