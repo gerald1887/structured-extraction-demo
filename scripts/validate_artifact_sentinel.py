@@ -40,12 +40,18 @@ def main(argv: list[str] | None = None) -> int:
         metavar="CMD",
         help="Sentinel CLI binary path (default: sentinel, or SENTINEL_BIN env var).",
     )
+    parser.add_argument(
+        "--failure-output",
+        metavar="PATH",
+        help="Optional file path to capture Sentinel stdout/stderr on validation failure.",
+    )
     args = parser.parse_args(argv)
 
     return validate_artifact_with_sentinel(
         input_path=args.input,
         schema_path=args.schema,
         sentinel_bin=args.sentinel_bin,
+        failure_output_path=args.failure_output,
     )
 
 

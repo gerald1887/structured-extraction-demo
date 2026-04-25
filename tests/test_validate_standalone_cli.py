@@ -64,6 +64,7 @@ class TestValidateStandaloneCli(unittest.TestCase):
             self.assertEqual(code, 0)
             self.assertIn("PASS: Contract satisfied", out)
             self.assertIn("fake sentinel rc=0", out)
+            self.assertEqual(out.count("PASS: Contract satisfied"), 1)
 
     def test_validate_contract_failure_exit_one(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -79,6 +80,7 @@ class TestValidateStandaloneCli(unittest.TestCase):
             )
             self.assertEqual(code, 1)
             self.assertIn("FAIL: Contract violated", out)
+            self.assertEqual(out.count("FAIL: Contract violated"), 1)
 
     def test_validate_execution_failure_exit_two(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -94,6 +96,76 @@ class TestValidateStandaloneCli(unittest.TestCase):
             )
             self.assertEqual(code, 2)
             self.assertIn("ERROR: Execution failed", out)
+
+    def test_validate_failure_output_written_on_failure(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            fake = self._fake_sentinel_path(root)
+            schema = root / "schema.json"
+            artifact = root / "artifact.json"
+            failure_output = root / "failure.json"
+            schema.write_text(self._schema_text(), encoding="utf-8")
+            artifact.write_text(json.dumps({"name": "A"}), encoding="utf-8")
+            code, _ = self._run_cli(
+                [
+                    "extract",
+                    "validate",
+                    "--input",
+                    str(artifact),
+                    "--schema",
+                    str(schema),
+                    "--failure-output",
+                    str(failure_output),
+                ],
+                env={"SENTINEL_BIN": str(fake), "FAKE_SENTINEL_RC": "1"},
+            )
+            self.assertEqual(code, 1)
+            self.assertTrue(failure_output.exists())
+            payload = json.loads(failure_output.read_text(encoding="utf-8"))
+            self.assertEqual(payload["status"], "FAIL")
+            self.assertEqual(payload["sentinel_exit_code"], 1)
+            self.assertIn("fake sentinel rc=1", payload["stdout"])
+            self.assertEqual(payload["stderr"], "")
+
+    def test_validate_failure_output_not_written_on_success(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            fake = self._fake_sentinel_path(root)
+            schema = root / "schema.json"
+            artifact = root / "artifact.json"
+            failure_output = root / "failure.json"
+            schema.write_text(self._schema_text(), encoding="utf-8")
+            artifact.write_text(json.dumps({"name": "A", "age": 1, "city": "B"}), encoding="utf-8")
+            code, _ = self._run_cli(
+                [
+                    "extract",
+                    "validate",
+                    "--input",
+                    str(artifact),
+                    "--schema",
+                    str(schema),
+                    "--failure-output",
+                    str(failure_output),
+                ],
+                env={"SENTINEL_BIN": str(fake), "FAKE_SENTINEL_RC": "0"},
+            )
+            self.assertEqual(code, 0)
+            self.assertFalse(failure_output.exists())
+
+    def test_validate_without_failure_output_remains_optional(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            fake = self._fake_sentinel_path(root)
+            schema = root / "schema.json"
+            artifact = root / "artifact.json"
+            schema.write_text(self._schema_text(), encoding="utf-8")
+            artifact.write_text(json.dumps({"name": "A"}), encoding="utf-8")
+            code, out = self._run_cli(
+                ["extract", "validate", "--input", str(artifact), "--schema", str(schema)],
+                env={"SENTINEL_BIN": str(fake), "FAKE_SENTINEL_RC": "1"},
+            )
+            self.assertEqual(code, 1)
+            self.assertIn("FAIL: Contract violated", out)
 
 
 if __name__ == "__main__":
