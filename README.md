@@ -37,6 +37,41 @@ extract run \
   --output outputs/result.json
 ```
 ---
+## Sentinel artifact validation (optional)
+
+Install the `sentinel` **package** (Sentinel CLI) in the same virtualenv to validate `outputs/result.json` with Sentinel’s JSON Schema stack (`load_schema`, `validate_schema_structure`, `validate_instance`). This does **not** run `sentinel run` and does **not** make a second LLM call.
+
+Install (from a local clone of the Sentinel CLI repo, path may vary):
+
+```
+pip install -e /path/to/sentinel-cli
+```
+
+Two steps (run extraction, then validate the file on disk):
+
+```
+extract run \
+  --input inputs/sample_1.txt \
+  --schema schemas/extraction_schema.json \
+  --output outputs/result.json
+
+python3 scripts/validate_artifact_sentinel.py \
+  --input outputs/result.json \
+  --schema schemas/extraction_schema.json
+```
+
+Optional one-shot wrapper (single provider call; validation is local Python only):
+
+```
+./scripts/extract_then_validate.sh run \
+  --input inputs/sample_1.txt \
+  --schema schemas/extraction_schema.json \
+  --output outputs/result.json
+```
+
+`validate_artifact_sentinel.py` exit codes: `0` = PASS, `1` = schema validation failure, `2` = error (I/O, invalid JSON, bad schema). The wrapper returns `extract`’s exit code on extraction failure, otherwise the validator’s exit code.
+
+---
 ## Output Artifacts
 
 On success:
