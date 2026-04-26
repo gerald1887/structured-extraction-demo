@@ -1,21 +1,20 @@
-# Python
-__pycache__/
-*.pyc
-*.pyo
 
-# Virtual env
-.venv/
-
-# Outputs / temp
-outputs/
-tmp/
-
-# OS
-.DS_Store
-
-# Editor
-.vscode/
-.idea/
+.claude/
 claude_*.md
-slice*_claude_review*
+.cursor/
+.DS_Store
+# Editor
 *.egg-info/
+.idea/
+# OS
+outputs/
+# Outputs / temp
+*.pyc
+__pycache__/
+*.pyo
+# Python
+slice*_claude_review*
+tmp/
+.venv/
+# Virtual env
+.vscode/
