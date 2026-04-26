@@ -78,6 +78,27 @@ class TestArtifactSchema(unittest.TestCase):
         self.assertEqual(public_err.exception.error_type, object_err.exception.error_type)
         self.assertEqual(public_err.exception.message, object_err.exception.message)
 
+    def test_exit_code_out_of_range_fails_with_exact_message(self) -> None:
+        artifact = {"status": "PASS", "exit_code": 256, "stdout": "ok\n", "stderr": ""}
+        with self.assertRaises(AppError) as ctx:
+            validate_artifact_object(artifact)
+        self.assertEqual(ctx.exception.error_type, SCHEMA_VALIDATION_ERROR)
+        self.assertEqual(ctx.exception.message, "Artifact exit_code must be in range 0-255")
+
+    def test_stdout_non_string_fails_with_exact_message(self) -> None:
+        artifact = {"status": "PASS", "exit_code": 0, "stdout": 1, "stderr": ""}
+        with self.assertRaises(AppError) as ctx:
+            validate_artifact_object(artifact)
+        self.assertEqual(ctx.exception.error_type, SCHEMA_VALIDATION_ERROR)
+        self.assertEqual(ctx.exception.message, "Artifact stdout must be string")
+
+    def test_stderr_non_string_fails_with_exact_message(self) -> None:
+        artifact = {"status": "PASS", "exit_code": 0, "stdout": "ok\n", "stderr": 1}
+        with self.assertRaises(AppError) as ctx:
+            validate_artifact_object(artifact)
+        self.assertEqual(ctx.exception.error_type, SCHEMA_VALIDATION_ERROR)
+        self.assertEqual(ctx.exception.message, "Artifact stderr must be string")
+
 
 if __name__ == "__main__":
     unittest.main()
