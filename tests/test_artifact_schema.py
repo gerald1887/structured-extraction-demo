@@ -9,6 +9,9 @@ from extractor.errors import AppError, SCHEMA_VALIDATION_ERROR
 
 
 class TestArtifactSchema(unittest.TestCase):
+    def test_package_level_validate_artifact_is_callable(self) -> None:
+        self.assertTrue(callable(package_validate_artifact))
+
     def test_import_artifact_schema_does_not_import_cli(self) -> None:
         source = inspect.getsource(artifact_schema)
         self.assertNotIn("extractor.cli", source)
@@ -52,6 +55,12 @@ class TestArtifactSchema(unittest.TestCase):
             validate_artifact(artifact)
         self.assertEqual(ctx.exception.error_type, SCHEMA_VALIDATION_ERROR)
         self.assertEqual(ctx.exception.message, "Artifact has invalid fields")
+
+    def test_validate_artifact_invalid_object_raises_stable_app_error(self) -> None:
+        with self.assertRaises(AppError) as ctx:
+            validate_artifact(["not", "an", "object"])
+        self.assertEqual(ctx.exception.error_type, SCHEMA_VALIDATION_ERROR)
+        self.assertEqual(ctx.exception.message, "Artifact must be a JSON object")
 
     def test_invalid_field_value_or_type_fails(self) -> None:
         artifact = {"status": "UNKNOWN", "exit_code": 0, "stdout": "ok\n", "stderr": ""}
