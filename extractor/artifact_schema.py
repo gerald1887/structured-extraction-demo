@@ -21,3 +21,7 @@ def validate_artifact_object(data: object) -> dict:
     if not isinstance(data.get("stderr"), str):
         raise AppError(SCHEMA_VALIDATION_ERROR, "Artifact stderr must be string")
     return data
+
+
+def validate_artifact(artifact: object) -> dict:
+    return validate_artifact_object(artifact)
