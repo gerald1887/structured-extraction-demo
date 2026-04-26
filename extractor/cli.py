@@ -21,6 +21,7 @@ from extractor.schema_check import run_schema_check, write_schema_check_report
 from extractor.snapshot import load_snapshot, write_snapshot
 from extractor.json_diff import compare_json
 from extractor.artifact_validate import validate_artifact_with_sentinel
+from extractor.artifact_schema import validate_artifact_object
 
 
 class StrictArgumentParser(argparse.ArgumentParser):
@@ -135,23 +136,7 @@ def _load_artifact(path: str) -> dict:
         data = json.loads(raw)
     except Exception as exc:
         raise AppError(JSON_PARSE_ERROR, f"Invalid JSON file: {path}") from exc
-    if not isinstance(data, dict):
-        raise AppError(SCHEMA_VALIDATION_ERROR, "Artifact must be a JSON object")
-    required = {"status", "exit_code", "stdout", "stderr"}
-    if set(data.keys()) != required:
-        raise AppError(SCHEMA_VALIDATION_ERROR, "Artifact has invalid fields")
-    if data.get("status") not in {"PASS", "FAIL", "ERROR"}:
-        raise AppError(SCHEMA_VALIDATION_ERROR, "Artifact has invalid status")
-    exit_code = data.get("exit_code")
-    if isinstance(exit_code, bool) or not isinstance(exit_code, int):
-        raise AppError(SCHEMA_VALIDATION_ERROR, "Artifact exit_code must be int")
-    if exit_code < 0 or exit_code > 255:
-        raise AppError(SCHEMA_VALIDATION_ERROR, "Artifact exit_code must be in range 0-255")
-    if not isinstance(data.get("stdout"), str):
-        raise AppError(SCHEMA_VALIDATION_ERROR, "Artifact stdout must be string")
-    if not isinstance(data.get("stderr"), str):
-        raise AppError(SCHEMA_VALIDATION_ERROR, "Artifact stderr must be string")
-    return data
+    return validate_artifact_object(data)
 
 
 def _json_equal(a: object, b: object) -> bool:
