@@ -126,7 +126,7 @@ def _load_json_file_for_diff(path: str) -> object:
         raise AppError(JSON_PARSE_ERROR, f"Invalid JSON file: {path}") from exc
 
 
-def _load_replay_artifact(path: str) -> dict:
+def _load_artifact(path: str) -> dict:
     try:
         raw = Path(path).read_text(encoding="utf-8")
     except Exception as exc:
@@ -136,21 +136,21 @@ def _load_replay_artifact(path: str) -> dict:
     except Exception as exc:
         raise AppError(JSON_PARSE_ERROR, f"Invalid JSON file: {path}") from exc
     if not isinstance(data, dict):
-        raise AppError(SCHEMA_VALIDATION_ERROR, "Replay artifact must be a JSON object")
+        raise AppError(SCHEMA_VALIDATION_ERROR, "Artifact must be a JSON object")
     required = {"status", "exit_code", "stdout", "stderr"}
     if set(data.keys()) != required:
-        raise AppError(SCHEMA_VALIDATION_ERROR, "Replay artifact has invalid fields")
+        raise AppError(SCHEMA_VALIDATION_ERROR, "Artifact has invalid fields")
     if data.get("status") not in {"PASS", "FAIL", "ERROR"}:
-        raise AppError(SCHEMA_VALIDATION_ERROR, "Replay artifact has invalid status")
+        raise AppError(SCHEMA_VALIDATION_ERROR, "Artifact has invalid status")
     exit_code = data.get("exit_code")
     if isinstance(exit_code, bool) or not isinstance(exit_code, int):
-        raise AppError(SCHEMA_VALIDATION_ERROR, "Replay artifact exit_code must be int")
+        raise AppError(SCHEMA_VALIDATION_ERROR, "Artifact exit_code must be int")
     if exit_code < 0 or exit_code > 255:
-        raise AppError(SCHEMA_VALIDATION_ERROR, "Replay artifact exit_code must be in range 0-255")
+        raise AppError(SCHEMA_VALIDATION_ERROR, "Artifact exit_code must be in range 0-255")
     if not isinstance(data.get("stdout"), str):
-        raise AppError(SCHEMA_VALIDATION_ERROR, "Replay artifact stdout must be string")
+        raise AppError(SCHEMA_VALIDATION_ERROR, "Artifact stdout must be string")
     if not isinstance(data.get("stderr"), str):
-        raise AppError(SCHEMA_VALIDATION_ERROR, "Replay artifact stderr must be string")
+        raise AppError(SCHEMA_VALIDATION_ERROR, "Artifact stderr must be string")
     return data
 
 
@@ -285,8 +285,8 @@ def main() -> int:
 
     if args.command == "diff-artifacts":
         try:
-            expected_data = _load_json_file_for_diff(args.expected)
-            actual_data = _load_json_file_for_diff(args.actual)
+            expected_data = _load_artifact(args.expected)
+            actual_data = _load_artifact(args.actual)
             if _json_equal(actual_data, expected_data):
                 print("MATCH")
                 return 0
@@ -399,7 +399,7 @@ def main() -> int:
 
     if args.command == "replay":
         try:
-            artifact = _load_replay_artifact(args.input)
+            artifact = _load_artifact(args.input)
         except AppError as err:
             print(f"ERROR {err.error_type} {err.message}")
             return 2

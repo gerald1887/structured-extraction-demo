@@ -239,6 +239,10 @@ extract diff-artifacts \
   --expected outputs/validation_success.json \
   --actual outputs/validation_failure.json
 ```
+
+`diff-artifacts` validates both inputs as unified artifact objects before comparison.
+If `--expected` is invalid, it fails first with structured error JSON (exit `2`);
+`--actual` is validated only after `--expected` is valid.
 ---
 ## Schema Compatibility Check
 

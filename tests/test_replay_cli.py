@@ -102,7 +102,7 @@ class TestReplayCli(unittest.TestCase):
             )
             code, out, err = self._run_cli(["extract", "replay", "--input", str(p)])
             self.assertEqual(code, 2)
-            self.assertEqual(out, "ERROR SCHEMA_VALIDATION_ERROR Replay artifact exit_code must be int\n")
+            self.assertEqual(out, "ERROR SCHEMA_VALIDATION_ERROR Artifact exit_code must be int\n")
             self.assertEqual(err, "")
 
     def test_replay_schema_validation_error_exit_code_true(self) -> None:
@@ -116,7 +116,7 @@ class TestReplayCli(unittest.TestCase):
             )
             code, out, err = self._run_cli(["extract", "replay", "--input", str(p)])
             self.assertEqual(code, 2)
-            self.assertEqual(out, "ERROR SCHEMA_VALIDATION_ERROR Replay artifact exit_code must be int\n")
+            self.assertEqual(out, "ERROR SCHEMA_VALIDATION_ERROR Artifact exit_code must be int\n")
             self.assertEqual(err, "")
 
     def test_replay_schema_validation_error_exit_code_false(self) -> None:
@@ -130,7 +130,7 @@ class TestReplayCli(unittest.TestCase):
             )
             code, out, err = self._run_cli(["extract", "replay", "--input", str(p)])
             self.assertEqual(code, 2)
-            self.assertEqual(out, "ERROR SCHEMA_VALIDATION_ERROR Replay artifact exit_code must be int\n")
+            self.assertEqual(out, "ERROR SCHEMA_VALIDATION_ERROR Artifact exit_code must be int\n")
             self.assertEqual(err, "")
 
     def test_replay_schema_validation_error_exit_code_negative(self) -> None:
@@ -144,7 +144,7 @@ class TestReplayCli(unittest.TestCase):
             )
             code, out, err = self._run_cli(["extract", "replay", "--input", str(p)])
             self.assertEqual(code, 2)
-            self.assertEqual(out, "ERROR SCHEMA_VALIDATION_ERROR Replay artifact exit_code must be in range 0-255\n")
+            self.assertEqual(out, "ERROR SCHEMA_VALIDATION_ERROR Artifact exit_code must be in range 0-255\n")
             self.assertEqual(err, "")
 
     def test_replay_schema_validation_error_exit_code_too_large(self) -> None:
@@ -158,7 +158,7 @@ class TestReplayCli(unittest.TestCase):
             )
             code, out, err = self._run_cli(["extract", "replay", "--input", str(p)])
             self.assertEqual(code, 2)
-            self.assertEqual(out, "ERROR SCHEMA_VALIDATION_ERROR Replay artifact exit_code must be in range 0-255\n")
+            self.assertEqual(out, "ERROR SCHEMA_VALIDATION_ERROR Artifact exit_code must be in range 0-255\n")
             self.assertEqual(err, "")
 
 

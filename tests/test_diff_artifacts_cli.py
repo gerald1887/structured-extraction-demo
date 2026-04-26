@@ -71,16 +71,45 @@ class TestDiffArtifactsCli(unittest.TestCase):
             self.assertEqual(payload["status"], "ERROR")
             self.assertEqual(payload["error_type"], "JSON_PARSE_ERROR")
 
-    def test_diff_artifacts_bool_vs_int_is_diff(self) -> None:
+    def test_diff_artifacts_invalid_expected_artifact_exits_2(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             expected = root / "expected.json"
             actual = root / "actual.json"
-            self._write_json(expected, {"flag": True})
-            self._write_json(actual, {"flag": 1})
+            self._write_json(expected, {"status": "PASS", "exit_code": 0, "stdout": "ok\n"})
+            self._write_json(actual, {"status": "PASS", "exit_code": 0, "stdout": "ok\n", "stderr": ""})
             code, out = self._run_cli(["extract", "diff-artifacts", "--expected", str(expected), "--actual", str(actual)])
-            self.assertEqual(code, 1)
-            self.assertEqual(out, "DIFF\n")
+            self.assertEqual(code, 2)
+            payload = json.loads(out)
+            self.assertEqual(payload["status"], "ERROR")
+            self.assertEqual(payload["error_type"], "SCHEMA_VALIDATION_ERROR")
+
+    def test_diff_artifacts_invalid_actual_artifact_exits_2(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            expected = root / "expected.json"
+            actual = root / "actual.json"
+            self._write_json(expected, {"status": "PASS", "exit_code": 0, "stdout": "ok\n", "stderr": ""})
+            self._write_json(actual, {"status": "PASS", "exit_code": 0, "stdout": "ok\n"})
+            code, out = self._run_cli(["extract", "diff-artifacts", "--expected", str(expected), "--actual", str(actual)])
+            self.assertEqual(code, 2)
+            payload = json.loads(out)
+            self.assertEqual(payload["status"], "ERROR")
+            self.assertEqual(payload["error_type"], "SCHEMA_VALIDATION_ERROR")
+
+    def test_diff_artifacts_both_invalid_reports_expected_first(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            expected = root / "expected.json"
+            actual = root / "actual.json"
+            self._write_json(expected, {"status": "PASS", "exit_code": 0, "stdout": "ok\n"})
+            self._write_json(actual, {"status": "PASS", "exit_code": 0, "stdout": "ok\n"})
+            code, out = self._run_cli(["extract", "diff-artifacts", "--expected", str(expected), "--actual", str(actual)])
+            self.assertEqual(code, 2)
+            payload = json.loads(out)
+            self.assertEqual(payload["status"], "ERROR")
+            self.assertEqual(payload["error_type"], "SCHEMA_VALIDATION_ERROR")
+            self.assertEqual(payload["message"], "Artifact has invalid fields")
 
 
 if __name__ == "__main__":
