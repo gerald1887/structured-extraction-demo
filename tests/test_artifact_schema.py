@@ -26,6 +26,14 @@ class TestArtifactSchema(unittest.TestCase):
         self.assertEqual(result, artifact)
         self.assertEqual(result["stdout"], "ok\n")
 
+    def test_validate_artifact_happy_path_no_mutation_or_coercion(self) -> None:
+        artifact = {"status": "FAIL", "exit_code": 1, "stdout": "", "stderr": "err\n"}
+        before = dict(artifact)
+        result = validate_artifact(artifact)
+        self.assertIs(result, artifact)
+        self.assertEqual(artifact, before)
+        self.assertIsInstance(result["exit_code"], int)
+
     def test_package_level_validate_artifact_import_surface(self) -> None:
         artifact = {"status": "PASS", "exit_code": 0, "stdout": "ok\n", "stderr": ""}
         result = package_validate_artifact(artifact)
@@ -78,10 +86,24 @@ class TestArtifactSchema(unittest.TestCase):
         self.assertEqual(public_err.exception.error_type, object_err.exception.error_type)
         self.assertEqual(public_err.exception.message, object_err.exception.message)
 
+    def test_exit_code_bool_fails_with_exact_error_type_and_message(self) -> None:
+        artifact = {"status": "PASS", "exit_code": True, "stdout": "ok\n", "stderr": ""}
+        with self.assertRaises(AppError) as ctx:
+            validate_artifact(artifact)
+        self.assertEqual(ctx.exception.error_type, SCHEMA_VALIDATION_ERROR)
+        self.assertEqual(ctx.exception.message, "Artifact exit_code must be int")
+
     def test_exit_code_out_of_range_fails_with_exact_message(self) -> None:
         artifact = {"status": "PASS", "exit_code": 256, "stdout": "ok\n", "stderr": ""}
         with self.assertRaises(AppError) as ctx:
             validate_artifact_object(artifact)
+        self.assertEqual(ctx.exception.error_type, SCHEMA_VALIDATION_ERROR)
+        self.assertEqual(ctx.exception.message, "Artifact exit_code must be in range 0-255")
+
+    def test_exit_code_negative_fails_with_exact_error_type_and_message(self) -> None:
+        artifact = {"status": "PASS", "exit_code": -1, "stdout": "ok\n", "stderr": ""}
+        with self.assertRaises(AppError) as ctx:
+            validate_artifact(artifact)
         self.assertEqual(ctx.exception.error_type, SCHEMA_VALIDATION_ERROR)
         self.assertEqual(ctx.exception.message, "Artifact exit_code must be in range 0-255")
 
@@ -98,6 +120,20 @@ class TestArtifactSchema(unittest.TestCase):
             validate_artifact_object(artifact)
         self.assertEqual(ctx.exception.error_type, SCHEMA_VALIDATION_ERROR)
         self.assertEqual(ctx.exception.message, "Artifact stderr must be string")
+
+    def test_boundary_valid_exit_code_255_and_empty_streams(self) -> None:
+        artifact = {"status": "ERROR", "exit_code": 255, "stdout": "", "stderr": ""}
+        result = validate_artifact(artifact)
+        self.assertEqual(result, artifact)
+
+    def test_canonical_external_consumer_contract(self) -> None:
+        valid = {"status": "PASS", "exit_code": 0, "stdout": "ok\n", "stderr": ""}
+        self.assertEqual(package_validate_artifact(valid), valid)
+        invalid = {"status": "PASS", "exit_code": "0", "stdout": "ok\n", "stderr": ""}
+        with self.assertRaises(AppError) as ctx:
+            package_validate_artifact(invalid)
+        self.assertEqual(ctx.exception.error_type, SCHEMA_VALIDATION_ERROR)
+        self.assertEqual(ctx.exception.message, "Artifact exit_code must be int")
 
 
 if __name__ == "__main__":
