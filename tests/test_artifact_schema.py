@@ -2,6 +2,7 @@ import unittest
 import inspect
 
 import extractor.artifact_schema as artifact_schema
+from extractor import validate_artifact as package_validate_artifact
 from extractor.artifact_schema import validate_artifact, validate_artifact_object
 from extractor.errors import AppError, SCHEMA_VALIDATION_ERROR
 
@@ -20,6 +21,11 @@ class TestArtifactSchema(unittest.TestCase):
         result = validate_artifact(artifact)
         self.assertEqual(result, artifact)
         self.assertEqual(result["stdout"], "ok\n")
+
+    def test_package_level_validate_artifact_import_surface(self) -> None:
+        artifact = {"status": "PASS", "exit_code": 0, "stdout": "ok\n", "stderr": ""}
+        result = package_validate_artifact(artifact)
+        self.assertEqual(result, artifact)
 
     def test_missing_required_field_fails(self) -> None:
         artifact = {"status": "PASS", "exit_code": 0, "stdout": "ok\n"}
