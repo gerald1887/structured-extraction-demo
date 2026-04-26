@@ -1,6 +1,7 @@
 import unittest
 import inspect
 
+import extractor
 import extractor.artifact_schema as artifact_schema
 from extractor import validate_artifact as package_validate_artifact
 from extractor.artifact_schema import validate_artifact, validate_artifact_object
@@ -26,6 +27,17 @@ class TestArtifactSchema(unittest.TestCase):
         artifact = {"status": "PASS", "exit_code": 0, "stdout": "ok\n", "stderr": ""}
         result = package_validate_artifact(artifact)
         self.assertEqual(result, artifact)
+
+    def test_direct_module_import_path_still_works(self) -> None:
+        artifact = {"status": "PASS", "exit_code": 0, "stdout": "ok\n", "stderr": ""}
+        result = artifact_schema.validate_artifact(artifact)
+        self.assertEqual(result, artifact)
+
+    def test_package_and_module_exports_are_same_callable(self) -> None:
+        self.assertIs(package_validate_artifact, artifact_schema.validate_artifact)
+
+    def test_validate_artifact_is_in_package_all(self) -> None:
+        self.assertIn("validate_artifact", extractor.__all__)
 
     def test_missing_required_field_fails(self) -> None:
         artifact = {"status": "PASS", "exit_code": 0, "stdout": "ok\n"}
